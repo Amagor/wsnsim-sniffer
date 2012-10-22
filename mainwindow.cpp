@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "qextserialport-1.2beta1/src/qextserialport.h"
+#include "qextserialport.h"
+#include "statictools.h"
 #include <QTimer>
 #include <QDateTime>
 #include <qiterator.h>
@@ -12,7 +13,7 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), ack_timer_(new QTimer(this)), file_("data.bin"),
-    ack_start_flag_(false), ack_req_flag_(true), file_settings_("MAI", "sniffer")
+    ack_start_flag_(false), ack_req_flag_(true)
 {
 
     ui->setupUi(this);
@@ -61,16 +62,19 @@ MainWindow::MainWindow(QWidget *parent) :
 
     acks_ << "ack start" << "ack stop" << "ack time";
 
-//    delegate_.insert("ack start", boost::bind(&MainWindow::on_ack_start_received, this));
-//    delegate_.insert("ack stop", boost::bind(&MainWindow::on_ack_stop_received, this));
-//    delegate_.insert("ack stop", boost::bind(&MainWindow::on_ack_time_received, this));
-
     delegate_.insert("ack start", &MainWindow::on_ack_start_received);
     delegate_.insert("ack stop", &MainWindow::on_ack_stop_received);
     delegate_.insert("ack time", &MainWindow::on_ack_time_received);
 
     set_project_file();
-    file_settings_.setValue("sniffer/absolutepath", file_information_.absoluteFilePath());
+
+    udp_settings_ = StaticTools::getClientRealTimeSettings();
+    udp_ip_ = udp_settings_->ip("Sniffer");
+    udp_port_ = udp_settings_->port("Sniffer");
+    qDebug() << udp_ip_;
+    udp_settings_->setProjectPath("Sniffer", file_information_.absoluteFilePath());
+    qDebug() << file_information_.absoluteFilePath();
+
 
     connect(ui->PortlistWidget, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(show_port_info(QListWidgetItem*)));
     connect(ui->BaudRateBox, SIGNAL(currentIndexChanged(int)), SLOT(onBaudRateChanged(int)));
@@ -86,6 +90,8 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete port_;
+    delete udp_settings_;
 }
 
 void MainWindow::scan_ports(){
@@ -228,7 +234,7 @@ void MainWindow::write_and_clear_buffer(){
 
 void MainWindow::send_message(const QByteArray& message){
     QUdpSocket socket;
-    socket.writeDatagram(message, QHostAddress("127.0.0.1"), 10000);
+    socket.writeDatagram(message, QHostAddress(udp_ip_), udp_port_);
 }
 
 

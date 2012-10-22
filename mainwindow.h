@@ -1,7 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "qextserialport-1.2beta1/src/qextserialenumerator.h"
+#include "qextserialenumerator.h"
 #include <QMainWindow>
 #include <QList>
 #include <QListWidget>
@@ -11,9 +11,7 @@
 #include <QMap>
 #include <QString>
 #include <QStringList>
-#include <QSharedPointer>                                       //удалить
-#include <QSettings>
-
+#include <QSharedPointer>
 
 
 namespace Ui {
@@ -22,6 +20,7 @@ class MainWindow;
 
 class QTimer;
 class QextSerialPort;
+class IClientRealTimeSettings;
 
 class MainWindow : public QMainWindow
 {
@@ -63,8 +62,10 @@ private:
     bool ack_start_flag_, ack_req_flag_;
     QMap <QString, void (MainWindow::*)(void) > delegate_;
     QStringList acks_;
-    QSettings file_settings_;
+    IClientRealTimeSettings* udp_settings_;
     QFileInfo file_information_;
+    QString udp_ip_;
+    qint64 udp_port_;
 };
 
 #endif // MAINWINDOW_H
