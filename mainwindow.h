@@ -3,24 +3,19 @@
 
 #include "qextserialenumerator.h"
 #include <QMainWindow>
-#include <QList>
+//#include <QFileInfo>
 #include <QListWidget>
 #include <QFile>
-#include <QFileInfo>
-#include <QByteArray>
-#include <QMap>
-#include <QString>
-#include <QStringList>
-#include <QSharedPointer>
+
+
+//forward declarations
+class SerialPort;
+class CommandHandler;
 
 
 namespace Ui {
 class MainWindow;
 }
-
-class QTimer;
-class QextSerialPort;
-class IClientRealTimeSettings;
 
 class MainWindow : public QMainWindow
 {
@@ -34,38 +29,30 @@ public:
     void enable_settings();
     void on_captureButton_pressed();
     void on_captureButton_released();
-    void write_and_clear_buffer();
-    void on_ack_start_received();
-    void on_ack_stop_received();
-    void on_ack_time_received();
-    void set_project_file();
-    void send_message(const QByteArray& message);
+//    void set_project_file();
+
+signals:
+    void channel_number_selected(int);
 
 public slots:
     void show_port_info(QListWidgetItem* item);
-    void on_captureButton_toggled(bool);
-    void onBaudRateChanged(int idx);
-    void onParityChanged(int idx);
-    void onDataBitsChanged(int idx);
-    void onStopBitsChanged(int idx);
-    void onReadyRead();
-    void check_sniffer();
+    void captureButton_clicked(bool);
+    void baud_rate_changed(int idx);
+    void parity_changed(int idx);
+    void data_bits_changed(int idx);
+    void stop_bits_changed(int idx);
+
+    void write_to_log(QByteArray);
 
     
 private:
     Ui::MainWindow *ui;
-    QList<QextPortInfo> ports_;
-    QextSerialPort* port_;
-    QSharedPointer<QTimer> ack_timer_;
-    QByteArray buffer_;
-    QFile file_;
-    bool ack_start_flag_, ack_req_flag_;
-    QMap <QString, void (MainWindow::*)(void) > delegate_;
-    QStringList acks_;
-    IClientRealTimeSettings* udp_settings_;
-    QFileInfo file_information_;
-    QString udp_ip_;
-    qint64 udp_port_;
+    SerialPort* port_;
+    CommandHandler* command_handler_;
+    QList<QextPortInfo> ports_info_;
+    QFile test_file_;
+//    QFileInfo project_file_info_;
+
 };
 
 #endif // MAINWINDOW_H

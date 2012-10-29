@@ -4,8 +4,11 @@
 #
 #-------------------------------------------------
 include(../wsnsim.pri)
-QT       += core gui
-QT  +=network
+QT       += core gui \
+            network \
+            xml
+
+
 
 #CONFIG += console
 
@@ -22,9 +25,15 @@ INCLUDEPATH += ../libs/qextserialport/src/ \
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    statictools.cpp
+    statictools.cpp \
+    serialport.cpp \
+    transfernetwork.cpp \
+    commandhandler.cpp
 
 HEADERS  += mainwindow.h \
-    statictools.h
+    statictools.h \
+    transfernetwork.h \
+    serialport.h \
+    commandhandler.h
 
 FORMS    += mainwindow.ui
