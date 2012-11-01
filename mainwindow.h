@@ -3,7 +3,7 @@
 
 #include "qextserialenumerator.h"
 #include <QMainWindow>
-//#include <QFileInfo>
+#include <QFileInfo>
 #include <QListWidget>
 #include <QFile>
 
@@ -11,6 +11,7 @@
 //forward declarations
 class SerialPort;
 class CommandHandler;
+class TransferNetwork;
 
 
 namespace Ui {
@@ -29,10 +30,11 @@ public:
     void enable_settings();
     void on_captureButton_pressed();
     void on_captureButton_released();
-//    void set_project_file();
+    void set_project_file();
 
 signals:
     void channel_number_selected(int);
+    void stop_capture_command();
 
 public slots:
     void show_port_info(QListWidgetItem* item);
@@ -49,9 +51,10 @@ private:
     Ui::MainWindow *ui;
     SerialPort* port_;
     CommandHandler* command_handler_;
+    TransferNetwork* transfer_network_;
     QList<QextPortInfo> ports_info_;
-    QFile test_file_;
-//    QFileInfo project_file_info_;
+    QFile log_file_;
+    QFileInfo project_file_info_;
 
 };
 

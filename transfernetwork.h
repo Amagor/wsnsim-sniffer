@@ -4,24 +4,27 @@
 #include <QtGlobal>
 #include <QUdpSocket>
 
-////forward declaration
-//class IClientRealTimeSettings;
-//class QUdpSocket;
-//class QHostAddress;
+//forward declaration
+class IClientRealTimeSettings;
+class QUdpSocket;
+class QHostAddress;
 
 
-//class TransferNetwork
-//{
-//public:
-//    TransferNetwork();
-//    ~TransferNetwork();
-//    void send_message(const QByteArray& message);
-//private:
-//    IClientRealTimeSettings* udp_settings_;
-//    QUdpSocket* socket_;
-//    QHostAddress* udp_ip_;
-//    qint64 udp_port_;
+class TransferNetwork : public QObject
+{
+    Q_OBJECT
 
-//};
+public:
+    TransferNetwork();
+    ~TransferNetwork();
+public slots:
+    void send_message(QByteArray message);
+private:
+    IClientRealTimeSettings* udp_settings_;
+    QUdpSocket socket_;
+    QHostAddress* udp_ip_;
+    qint64 udp_port_;
+
+};
 
 #endif // TRANSFERNETWORK_H

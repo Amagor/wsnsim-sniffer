@@ -3,6 +3,7 @@
 #include "serialport.h"
 #include "qextserialport.h"
 #include "commandhandler.h"
+#include "transfernetwork.h"
 #include <QXmlStreamWriter>
 #include <QFile>
 #include <QDebug>
@@ -15,11 +16,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
 
-    test_file_.setFileName("testfile3.txt");
-    test_file_.open(QIODevice::WriteOnly);
+    log_file_.setFileName("data.txt");
+    log_file_.open(QIODevice::WriteOnly);
 
     port_ = new SerialPort;
     command_handler_ = new CommandHandler;
+    transfer_network_ = new TransferNetwork;
+
 
     //set ui settings
     ui->portInfoEdit->setReadOnly(true);
@@ -57,10 +60,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->crcModeBox->addItem(QLatin1String("manual"));
     ui->crcModeBox->setCurrentIndex(0);
 
-//    set_project_file();
-    //set port settings
+    set_project_file();
 
-//    set_project_file();
 
 //    udp_settings_ = StaticTools::getClientRealTimeSettings();
 //    udp_ip_ = udp_settings_->ip("Sniffer");
@@ -78,7 +79,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->captureButton, SIGNAL(clicked(bool)), SLOT(captureButton_clicked(bool)));
 
     connect(this, SIGNAL(channel_number_selected(int)), command_handler_, SLOT(set_channel_number(int)));
+    connect(this, SIGNAL(stop_capture_command()), command_handler_, SLOT(send_stop_command()));
+
     connect(command_handler_, SIGNAL(log_message(QByteArray)), this, SLOT(write_to_log(QByteArray)));
+    connect(command_handler_, SIGNAL(log_message(QByteArray)), transfer_network_, SLOT(send_message(QByteArray)));
     connect(command_handler_, SIGNAL(send_message(QByteArray)), port_, SLOT(send_message(QByteArray)));
 
     connect(port_, SIGNAL(data_received(QByteArray&)), command_handler_, SLOT(get_message(QByteArray&)));
@@ -130,18 +134,6 @@ void MainWindow::on_captureButton_pressed(){
     ui->portInfoEdit->setDisabled(true);
     port_->start_port_session(ui->PortlistWidget->currentItem()->text());
     emit channel_number_selected(ui->spinBox->value());
-//    if(!port_->isOpen()){
-//        port_->setPortName(ui->PortlistWidget->currentItem()->text());
-//        port_->open(QIODevice::ReadWrite);
-//    }
-//    if (port_->isOpen()) {
-//        if (port_->queryMode() == QextSerialPort::EventDriven){
-//            ack_timer_->start();
-//        }
-//        QString command = "start" + ui->crcModeBox->currentText() + " " + QString::number(ui->spinBox->value()).toAscii() + "\\";
-//        port_->write(command.toLatin1());
-//    }
-
 }
 
 void MainWindow::on_captureButton_released(){
@@ -149,10 +141,11 @@ void MainWindow::on_captureButton_released(){
     ui->captureButton->setText("Start capture");
     ui->PortlistWidget->setDisabled(false);
     ui->portInfoEdit->setDisabled(false);
+    emit stop_capture_command();
 }
 
 void MainWindow::write_to_log(QByteArray message){
-    test_file_.write(message);
+    log_file_.write(message);
 }
 
 
@@ -175,20 +168,6 @@ void MainWindow::stop_bits_changed(int idx)
     port_->set_stop_bits((StopBitsType)ui->stopBitsBox->itemData(idx).toInt());
 }
 
-
-
-//void MainWindow::check_sniffer(){
-//    if(ack_req_flag_){
-//        port_->write("ack\\");
-//        ack_req_flag_ = false;
-//    }
-//    else{
-//        port_->close();
-//        ack_timer_->stop();
-//    }
-//}
-
-
 void MainWindow::disable_settings(){
     ui->BaudRateBox->setDisabled(true);
     ui->dataBitsBox->setDisabled(true);
@@ -207,72 +186,33 @@ void MainWindow::enable_settings(){
     ui->crcModeBox->setDisabled(false);
 }
 
-//void MainWindow::write_and_clear_buffer(){
-//    if(buffer_.size()>buffer_.data()[0] && buffer_.data()[0]){
-//        qint64 current_time = QDateTime::currentMSecsSinceEpoch();
-//        static char current_time_in_bytes[8];
-//        for(int i=0; i<8; i++)
-//            current_time_in_bytes[7-i] = current_time>>8*i;
-//        QByteArray message(current_time_in_bytes, 8);
-//        message.append('\0');
-//        message.append(buffer_.left(buffer_.data()[0]+1));
-//        buffer_.remove(0, buffer_.data()[0]+1);
-//        file_.write(message);
-//        QtConcurrent::run(this, &MainWindow::send_message, message);
-//    }
-//}
+void MainWindow::set_project_file(){
+    QFile project_file("project_sniffer.xml");
+    project_file_info_.setFile(project_file);
+    project_file.open(QIODevice::WriteOnly);
+    QXmlStreamWriter stream(&project_file);
+    stream.setAutoFormatting(true);
+    stream.writeStartDocument();
+    stream.writeStartElement("project");
+    stream.writeAttribute("version", "0.6.0");
+    stream.writeStartElement("events");
+    stream.writeStartElement("systemEvents");
+    stream.writeStartElement("event");
+    stream.writeAttribute("group", "");
+    stream.writeAttribute("ID", "0");
+    stream.writeAttribute("name", "MessageRecieved");
+    stream.writeStartElement("argument");
+    stream.writeAttribute("type", "ByteArray");
+    stream.writeAttribute("ID", "0");
+    stream.writeAttribute("name", "NodeID");
+    for(int i=0; i<4; ++i)
+        stream.writeEndElement();
+    stream.writeStartElement("logFiles");
+    stream.writeStartElement("logFile");
+    stream.writeAttribute("ID", "0");
+    stream.writeAttribute("name", log_file_.fileName());
+    for(int i=0; i<2; ++i)
+        stream.writeEndElement();
+    stream.writeEndDocument();
 
-//void MainWindow::send_message(const QByteArray& message){
-//    QUdpSocket socket;
-//    socket.writeDatagram(message, QHostAddress(udp_ip_), udp_port_);
-//}
-
-
-
-//void MainWindow::on_ack_start_received(){
-//    buffer_.replace("ack start", "");
-//    ack_timer_->start();
-//    ack_start_flag_ = true;
-//}
-
-//void MainWindow::on_ack_stop_received(){
-//    buffer_.replace("ack stop", "");
-//    port_->close();
-//    ack_timer_->stop();
-//}
-
-//void MainWindow::on_ack_time_received(){
-//    buffer_.replace("ack time", "");
-//    ack_req_flag_ = true;
-//}
-
-//void MainWindow::set_project_file(){
-//    QFile project_file("project_sniffer.xml");
-//    project_file_info_.setFile(project_file);
-//    project_file.open(QIODevice::WriteOnly);
-//    QXmlStreamWriter stream(&project_file);
-//    stream.setAutoFormatting(true);
-//    stream.writeStartDocument();
-//    stream.writeStartElement("project");
-//    stream.writeAttribute("version", "0.6.0");
-//    stream.writeStartElement("events");
-//    stream.writeStartElement("systemEvents");
-//    stream.writeStartElement("event");
-//    stream.writeAttribute("group", "");
-//    stream.writeAttribute("ID", "0");
-//    stream.writeAttribute("name", "MessageRecieved");
-//    stream.writeStartElement("argument");
-//    stream.writeAttribute("type", "ByteArray");
-//    stream.writeAttribute("ID", "0");
-//    stream.writeAttribute("name", "NodeID");
-//    for(int i=0; i<4; ++i)
-//        stream.writeEndElement();
-//    stream.writeStartElement("logFiles");
-//    stream.writeStartElement("logFile");
-//    stream.writeAttribute("ID", "0");
-////    stream.writeAttribute("name", file_.fileName());
-//    for(int i=0; i<2; ++i)
-//        stream.writeEndElement();
-//    stream.writeEndDocument();
-
-//}
+}

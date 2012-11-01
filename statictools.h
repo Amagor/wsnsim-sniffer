@@ -1,9 +1,7 @@
 #ifndef STATICTOOLS_H
 #define STATICTOOLS_H
 
-
-//forward declaration
-class IClientRealTimeSettings;
+#include "iclientrealtimesettings.h"
 
 class StaticTools
 {

@@ -17,7 +17,6 @@ SerialPort::~SerialPort(){
 void SerialPort::on_ready_read(){
     if(current_port_->bytesAvailable()){
         receive_buffer_.append(current_port_->readAll());
-        qDebug() << "something get";
         emit data_received(receive_buffer_);
     }
 }
