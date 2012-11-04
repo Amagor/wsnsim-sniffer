@@ -20,6 +20,9 @@ public:
     void on_data_packet_received();
     void send_channel_select_command();
     void send_start_command();
+    char check_crc(QByteArray message);
+    void insert_crc();
+    void clear_transmit();
 signals:
     void log_message(QByteArray);
     void send_message(QByteArray);

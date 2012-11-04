@@ -16,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
 
-    log_file_.setFileName("data.txt");
+    log_file_.setFileName("data.bin");
     log_file_.open(QIODevice::WriteOnly);
 
     port_ = new SerialPort;
@@ -201,11 +201,89 @@ void MainWindow::set_project_file(){
     stream.writeAttribute("group", "");
     stream.writeAttribute("ID", "0");
     stream.writeAttribute("name", "MessageRecieved");
+
+
+    stream.writeStartElement("argument");
+    stream.writeAttribute("type", "uint8");
+    stream.writeAttribute("ID", "0");
+    stream.writeAttribute("name", "NULL");
+    stream.writeEndElement();
+
+    stream.writeStartElement("argument");
+    stream.writeAttribute("type", "uint8");
+    stream.writeAttribute("ID", "1");
+    stream.writeAttribute("name", "SOH");
+    stream.writeEndElement();
+
+    stream.writeStartElement("argument");
+    stream.writeAttribute("type", "uint8");
+    stream.writeAttribute("ID", "2");
+    stream.writeAttribute("name", "LEN");
+    stream.writeEndElement();
+
+    stream.writeStartElement("argument");
+    stream.writeAttribute("type", "uint8");
+    stream.writeAttribute("ID", "3");
+    stream.writeAttribute("name", "ID");
+    stream.writeEndElement();
+
     stream.writeStartElement("argument");
     stream.writeAttribute("type", "ByteArray");
-    stream.writeAttribute("ID", "0");
-    stream.writeAttribute("name", "NodeID");
-    for(int i=0; i<4; ++i)
+    stream.writeAttribute("ID", "4");
+    stream.writeAttribute("name", "TIMESTAMP");
+    stream.writeEndElement();
+
+    stream.writeStartElement("argument");
+    stream.writeAttribute("type", "uint8");
+    stream.writeAttribute("ID", "5");
+    stream.writeAttribute("name", "LENGTH");
+    stream.writeEndElement();
+
+
+    stream.writeStartElement("argument");
+    stream.writeAttribute("type", "ByteArray");
+    stream.writeAttribute("ID", "6");
+    stream.writeAttribute("name", "Message");
+    stream.writeEndElement();
+
+    stream.writeStartElement("argument");
+    stream.writeAttribute("type", "uint8");
+    stream.writeAttribute("ID", "7");
+    stream.writeAttribute("name", "FLAGS");
+    stream.writeEndElement();
+
+    stream.writeStartElement("argument");
+    stream.writeAttribute("type", "uint8");          //must be int8
+    stream.writeAttribute("ID", "8");
+    stream.writeAttribute("name", "RSSI");
+    stream.writeEndElement();
+
+    stream.writeStartElement("argument");
+    stream.writeAttribute("type", "uint8");
+    stream.writeAttribute("ID", "9");
+    stream.writeAttribute("name", "LQI");
+    stream.writeEndElement();
+
+    stream.writeStartElement("argument");
+    stream.writeAttribute("type", "uint8");
+    stream.writeAttribute("ID", "10");
+    stream.writeAttribute("name", "IEEEFCS");
+    stream.writeEndElement();
+
+    stream.writeStartElement("argument");
+    stream.writeAttribute("type", "uint8");
+    stream.writeAttribute("ID", "11");
+    stream.writeAttribute("name", "CHECKSUM");
+    stream.writeEndElement();
+
+    stream.writeStartElement("argument");
+    stream.writeAttribute("type", "uint8");
+    stream.writeAttribute("ID", "12");
+    stream.writeAttribute("name", "EOT");
+    stream.writeEndElement();
+
+
+    for(int i=0; i<3; ++i)
         stream.writeEndElement();
     stream.writeStartElement("logFiles");
     stream.writeStartElement("logFile");

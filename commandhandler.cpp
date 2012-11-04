@@ -1,7 +1,9 @@
 #include "commandhandler.h"
 #include "qextserialenumerator.h"
 #include "mainwindow.h"
+#include <QDateTime>
 #include <QDebug>               //убрать
+
 
 CommandHandler::CommandHandler():transmit_stream_(&transmit_message_, QIODevice::ReadWrite), start_command_sent_(false)
 {
@@ -36,12 +38,14 @@ void CommandHandler::send_query_request_packet(){
     qDebug() << "send query request packet";
     transmit_stream_ << quint8(0x00) << qint8(0x01) << qint8(0x03)
                      << qint8(0x37) << qint8(0xff) << qint8(0x04);
+    insert_crc();
     emit send_message(transmit_message_);
 }
 
 void CommandHandler::parse_message(){
-    //add check checksum
-    (this->*command_delegate_[receive_message_.data()[3]])();
+    //check crc
+    if(*(receive_message_.end()-2)==check_crc(receive_message_.right(receive_message_.data()[2]+1)))
+        (this->*command_delegate_[receive_message_.data()[3]])();
 }
 
 void CommandHandler::on_query_response_packet(){
@@ -52,9 +56,10 @@ void CommandHandler::on_query_response_packet(){
 
 void CommandHandler::send_channel_select_command(){
     qDebug() << "send channel select command";
-    transmit_stream_.device()->reset();
+    clear_transmit();
     transmit_stream_ << quint8(0x00) << qint8(0x01) << qint8(0x04) << qint8(0x32)
                       << qint8(channel_number_) << qint8(0xff) << qint8(0x04);
+    insert_crc();
     emit send_message(transmit_message_);
 }
 
@@ -71,17 +76,19 @@ void CommandHandler::on_ack_packet(){
 
 void CommandHandler::send_start_command(){
     qDebug() << "send start command";
-    transmit_stream_.device()->reset();
+    clear_transmit();
     transmit_stream_ << quint8(0x00) << qint8(0x01) << qint8(0x03) << qint8(0x33)
                      << qint8(0xff) << qint8(0x04);
+    insert_crc();
     emit send_message(transmit_message_);
 }
 
 void CommandHandler::send_stop_command(){
     qDebug() << "send stop command";
-    transmit_stream_.device()->reset();
+    clear_transmit();
     transmit_stream_ << quint8(0x00) << qint8(0x01) << qint8(0x03) << qint8(0x34)
                      << qint8(0xff) << qint8(0x04);
+    insert_crc();
     emit send_message(transmit_message_);
 }
 
@@ -89,28 +96,40 @@ void CommandHandler::send_stop_command(){
 void CommandHandler::on_data_packet_received(){
     qDebug() << "data packet received";
 
-    //test
-//    unsigned long long some_number = 0;
-    QByteArray timestamp(receive_message_.left(9));
-    timestamp.remove(0, 4);
-    QDataStream test(&timestamp, QIODevice::ReadOnly);
-    test.setByteOrder(QDataStream::LittleEndian);
-    unsigned int some_time;
-    test >> some_time;
-    qDebug() << some_time;
+    qint64 current_time = QDateTime::currentMSecsSinceEpoch();
+    static char current_time_in_bytes[8];
+    for(int i=0; i<8; i++)
+        current_time_in_bytes[7-i] = current_time>>8*i;
 
-//    some_number >> 8;
-//    some_number |= receive_message_.data()[5];
-//    some_number |= receive_message_.data()[6];
-//    some_number >> 8;
+    unsigned char length = receive_message_.data()[9];
+    receive_message_.insert(4, 0x05);
+    receive_message_.insert(10, length);
 
-//    some_number >> 8;
+    receive_message_.prepend('\0');
+    receive_message_.prepend(current_time_in_bytes, 8);
 
-
-//    qDebug() << some_number;
-
-//    emit log_message(receive_message_);
-    emit log_message(timestamp);
+    emit log_message(receive_message_);
     receive_message_.clear();
 }
 
+
+//расчет CRC8
+char CommandHandler::check_crc(QByteArray message){
+    *(message.end()-2)=0xFF;
+    char crc = 0xFF;
+    foreach(char c, message){
+        crc ^= c;
+        for (char i = 0; i < 8; i++)
+            crc = crc & 0x80 ? (crc << 1) ^ 0x31 : crc << 1;
+    }
+    return crc;
+}
+
+void CommandHandler::insert_crc(){
+    transmit_message_.replace(0xff, check_crc(transmit_message_.right(transmit_message_.data()[2]+1)));
+}
+
+void CommandHandler::clear_transmit(){
+    transmit_message_.clear();
+    transmit_stream_.device()->reset();
+}
