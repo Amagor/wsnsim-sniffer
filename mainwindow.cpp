@@ -21,7 +21,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     port_ = new SerialPort;
     command_handler_ = new CommandHandler;
-    transfer_network_ = new TransferNetwork;
 
 
     //set ui settings
@@ -32,7 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
     scan_ports();
 
 
-    ui->spinBox->setRange(12,21);
+    ui->spinBox->setRange(11,26);
 
 
     ui->BaudRateBox->addItem(QLatin1String("1200"), BAUD1200);
@@ -61,15 +60,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->crcModeBox->setCurrentIndex(0);
 
     set_project_file();
-
-
-//    udp_settings_ = StaticTools::getClientRealTimeSettings();
-//    udp_ip_ = udp_settings_->ip("Sniffer");
-//    udp_port_ = udp_settings_->port("Sniffer");
-//    qDebug() << udp_ip_;
-//    udp_settings_->setProjectPath("Sniffer", file_information_.absoluteFilePath());
-//    qDebug() << file_information_.absoluteFilePath();
-
+    transfer_network_ = new TransferNetwork(project_file_info_.absoluteFilePath());
 
     connect(ui->PortlistWidget, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(show_port_info(QListWidgetItem*)));
     connect(ui->BaudRateBox, SIGNAL(currentIndexChanged(int)), SLOT(baud_rate_changed(int)));
@@ -86,6 +77,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(command_handler_, SIGNAL(send_message(QByteArray)), port_, SLOT(send_message(QByteArray)));
 
     connect(port_, SIGNAL(data_received(QByteArray&)), command_handler_, SLOT(get_message(QByteArray&)));
+    connect(command_handler_, SIGNAL(close_current_port()), port_, SLOT(close_port_session()));
 }
 
 MainWindow::~MainWindow()
@@ -132,7 +124,7 @@ void MainWindow::on_captureButton_pressed(){
     ui->captureButton->setText("Stop capture");
     ui->PortlistWidget->setDisabled(true);
     ui->portInfoEdit->setDisabled(true);
-    port_->start_port_session(ui->PortlistWidget->currentItem()->text());
+    port_->open_port_session(ui->PortlistWidget->currentItem()->text());
     emit channel_number_selected(ui->spinBox->value());
 }
 
@@ -253,7 +245,7 @@ void MainWindow::set_project_file(){
     stream.writeEndElement();
 
     stream.writeStartElement("argument");
-    stream.writeAttribute("type", "uint8");          //must be int8
+    stream.writeAttribute("type", "int8");          //must be int8
     stream.writeAttribute("ID", "8");
     stream.writeAttribute("name", "RSSI");
     stream.writeEndElement();

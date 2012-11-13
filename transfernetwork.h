@@ -3,6 +3,7 @@
 
 #include <QtGlobal>
 #include <QUdpSocket>
+#include <QString>
 
 //forward declaration
 class IClientRealTimeSettings;
@@ -15,7 +16,7 @@ class TransferNetwork : public QObject
     Q_OBJECT
 
 public:
-    TransferNetwork();
+    TransferNetwork(QString path);
     ~TransferNetwork();
 public slots:
     void send_message(QByteArray message);
@@ -24,6 +25,7 @@ private:
     QUdpSocket socket_;
     QHostAddress* udp_ip_;
     qint64 udp_port_;
+    QString absolute_file_path_;
 
 };
 

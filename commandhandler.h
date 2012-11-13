@@ -14,7 +14,6 @@ public:
     CommandHandler();
     ~CommandHandler();
     void send_query_request_packet();
-    void parse_message();
     void on_query_response_packet();
     void on_ack_packet();
     void on_data_packet_received();
@@ -23,9 +22,12 @@ public:
     char check_crc(QByteArray message);
     void insert_crc();
     void clear_transmit();
+    void do_nothing();
+    void close_port();
 signals:
     void log_message(QByteArray);
     void send_message(QByteArray);
+    void close_current_port();
 public slots:
     void get_message(QByteArray& receive_buffer);
     void set_channel_number(int channel);
@@ -34,8 +36,8 @@ private:
     QByteArray receive_message_, transmit_message_;
     QDataStream transmit_stream_;
     QMap <int, void (CommandHandler::*)(void) > command_delegate_;
-    int channel_number_;
-    bool start_command_sent_;
+    QMap <int, void (CommandHandler::*)(void) > ack_delegate_;
+    int channel_number_, last_sent_command_id_;
 };
 
 #endif // COMMANDHANDLER_H

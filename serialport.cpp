@@ -25,7 +25,7 @@ void SerialPort::send_message(QByteArray message){
     current_port_->write(message);
 }
 
-void SerialPort::start_port_session(QString port_name){
+void SerialPort::open_port_session(QString port_name){
     if(!current_port_->isOpen()){
         current_port_->setPortName(port_name);
         current_port_->open(QIODevice::ReadWrite);
@@ -47,4 +47,8 @@ void SerialPort::set_parity(ParityType parity){
 
 void SerialPort::set_stop_bits(StopBitsType stop_bits){
     current_port_->setStopBits(stop_bits);
+}
+
+void SerialPort::close_port_session(){
+    current_port_->close();
 }
