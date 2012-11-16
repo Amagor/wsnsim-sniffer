@@ -220,7 +220,7 @@ void MainWindow::set_project_file(){
     stream.writeEndElement();
 
     stream.writeStartElement("argument");
-    stream.writeAttribute("type", "ByteArray");
+    stream.writeAttribute("type", "FiveBytes");
     stream.writeAttribute("ID", "4");
     stream.writeAttribute("name", "TIMESTAMP");
     stream.writeEndElement();
@@ -235,7 +235,7 @@ void MainWindow::set_project_file(){
     stream.writeStartElement("argument");
     stream.writeAttribute("type", "ByteArray");
     stream.writeAttribute("ID", "6");
-    stream.writeAttribute("name", "Message");
+    stream.writeAttribute("name", "message");
     stream.writeEndElement();
 
     stream.writeStartElement("argument");

@@ -106,7 +106,7 @@ void CommandHandler::on_data_packet_received(){
         current_time_in_bytes[7-i] = current_time>>8*i;
 
     unsigned char length = receive_message_.data()[9];
-    receive_message_.insert(4, 0x05);
+//    receive_message_.insert(4, 0x05);
     receive_message_.insert(10, length);
 
     receive_message_.prepend('\0');
