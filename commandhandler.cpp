@@ -5,15 +5,21 @@
 #include <QDebug>               //убрать
 
 
-CommandHandler::CommandHandler():transmit_stream_(&transmit_message_, QIODevice::ReadWrite)
+CommandHandler::CommandHandler():transmit_stream_(&transmit_message_, QIODevice::ReadWrite), check_complete_(true)
 {
+    timer_ = new QTimer(this);
+    timer_->setInterval(2000);
+
     command_delegate_.insert(0x38, &CommandHandler::on_query_response_packet);
     command_delegate_.insert(0x35, &CommandHandler::on_ack_packet);
     command_delegate_.insert(0x31, &CommandHandler::on_data_packet_received);
 
     ack_delegate_.insert(0x32, &CommandHandler::send_start_command);
-    ack_delegate_.insert(0x33, &CommandHandler::do_nothing);
+    ack_delegate_.insert(0x33, &CommandHandler::update_timer);
     ack_delegate_.insert(0x34, &CommandHandler::close_port);
+    ack_delegate_.insert(0x36, &CommandHandler::update_timer);          //test
+
+    connect(timer_, SIGNAL(timeout()), this, SLOT(send_ack_request_packet()));
 }
 
 CommandHandler::~CommandHandler(){
@@ -111,6 +117,8 @@ void CommandHandler::on_data_packet_received(){
     receive_message_.prepend('\0');
     receive_message_.prepend(current_time_in_bytes, 8);
 
+    update_timer();             //test
+
     emit log_message(receive_message_);
     receive_message_.clear();
 }
@@ -142,4 +150,24 @@ void CommandHandler::do_nothing(){}
 void CommandHandler::close_port(){
     qDebug() << "close port";
     emit close_current_port();
+}
+
+void CommandHandler::send_ack_request_packet(){
+    if(check_complete_){
+        qDebug() << "send ack request command";
+        clear_transmit();
+        transmit_stream_ << quint8(0x00) << qint8(0x01) << qint8(0x03) << qint8(0x36)
+                         << qint8(0xff) << qint8(0x04);
+        insert_crc();
+        last_sent_command_id_ = 0x36;
+        check_complete_ = false;
+        emit send_message(transmit_message_);
+    }
+    else
+        close_port();
+}
+
+void CommandHandler::update_timer(){
+    check_complete_ = true;
+    timer_->start();
 }

@@ -5,6 +5,7 @@
 #include <QByteArray>
 #include <QDataStream>
 #include <QMap>
+#include <QTimer>
 
 class CommandHandler : public QObject{
 
@@ -24,6 +25,7 @@ public:
     void clear_transmit();
     void do_nothing();
     void close_port();
+    void update_timer();
 signals:
     void log_message(QByteArray);
     void send_message(QByteArray);
@@ -32,12 +34,15 @@ public slots:
     void get_message(QByteArray& receive_buffer);
     void set_channel_number(int channel);
     void send_stop_command();
+    void send_ack_request_packet();
 private:
     QByteArray receive_message_, transmit_message_;
     QDataStream transmit_stream_;
     QMap <int, void (CommandHandler::*)(void) > command_delegate_;
     QMap <int, void (CommandHandler::*)(void) > ack_delegate_;
     int channel_number_, last_sent_command_id_;
+    QTimer* timer_;
+    bool check_complete_;
 };
 
 #endif // COMMANDHANDLER_H
