@@ -2,7 +2,10 @@
 #include "qextserialenumerator.h"
 #include "mainwindow.h"
 #include <QDateTime>
+#include <QMessageBox>
 #include <QDebug>               //убрать
+
+
 
 
 CommandHandler::CommandHandler():transmit_stream_(&transmit_message_, QIODevice::ReadWrite), check_complete_(true)
@@ -20,6 +23,8 @@ CommandHandler::CommandHandler():transmit_stream_(&transmit_message_, QIODevice:
     ack_delegate_.insert(0x36, &CommandHandler::update_timer);
 
     error_delegate_.insert(0x37, &CommandHandler::error_select_channel);
+    error_delegate_.insert(0x33, &CommandHandler::error_start_capture);
+    error_delegate_.insert(0x34, &CommandHandler::error_stop_capture);
 
     connect(timer_, SIGNAL(timeout()), this, SLOT(send_ack_request_packet()));
 }
@@ -79,12 +84,14 @@ void CommandHandler::send_channel_select_command(){
 
 void CommandHandler::on_ack_packet(){
     qDebug() << "ack packet received";
-    //check result field
-    //add some checks
     if(!receive_message_.data()[4]){
-        receive_message_.clear();
        (this->*ack_delegate_[last_sent_command_id_])();
     }
+    else{
+        result_field_ = receive_message_.data()[4];
+        (this->*error_delegate_[last_sent_command_id_])();
+    }
+    receive_message_.clear();
 }
 
 void CommandHandler::send_start_command(){
@@ -177,5 +184,39 @@ void CommandHandler::update_timer(){
 }
 
 void CommandHandler::error_select_channel(){
+    switch(result_field_){
+        case 0x01:
+            send_channel_select_command();
+            break;
+        case 0x02:
+            set_message_box("Wrong channel!");
+            break;
+    }
+}
 
+void CommandHandler::error_start_capture(){
+    switch(result_field_){
+        case 0x01:
+            send_start_command();
+            break;
+        case 0x03:
+            set_message_box("Capture in progress!");
+            break;
+    }
+}
+
+void CommandHandler::error_stop_capture(){
+    switch(result_field_){
+        case 0x01:
+            send_stop_command();
+            break;
+        case 0x04:
+            set_message_box("No capture in progress!");
+            break;
+    }
+}
+
+void CommandHandler::set_message_box(QString text){
+    msgBox_.setText(text);
+    msgBox_.exec();
 }

@@ -6,6 +6,8 @@
 #include <QDataStream>
 #include <QMap>
 #include <QTimer>
+#include <QMessageBox>
+#include <QString>
 
 class CommandHandler : public QObject{
 
@@ -26,6 +28,9 @@ public:
     void close_port();
     void update_timer();
     void error_select_channel();
+    void error_start_capture();
+    void error_stop_capture();
+    void set_message_box(QString text);
 signals:
     void log_message(QByteArray);
     void send_message(QByteArray);
@@ -39,10 +44,11 @@ private:
     QByteArray receive_message_, transmit_message_;
     QDataStream transmit_stream_;
     QMap <int, void (CommandHandler::*)(void) > command_delegate_, ack_delegate_, error_delegate_;
-//    QMap <int, void (CommandHandler::*)(void) > ack_delegate_;
     int channel_number_, last_sent_command_id_;
     QTimer* timer_;
     bool check_complete_;
+    char result_field_;
+    QMessageBox msgBox_;
 };
 
 #endif // COMMANDHANDLER_H

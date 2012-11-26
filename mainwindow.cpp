@@ -22,7 +22,6 @@ MainWindow::MainWindow(QWidget *parent) :
     port_ = new SerialPort;
     command_handler_ = new CommandHandler;
 
-
     //set ui settings
     ui->portInfoEdit->setReadOnly(true);
     ui->captureButton->setCheckable(true);
@@ -78,6 +77,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(port_, SIGNAL(data_received(QByteArray&)), command_handler_, SLOT(get_message(QByteArray&)));
     connect(command_handler_, SIGNAL(close_current_port()), port_, SLOT(close_port_session()));
+
+
 }
 
 MainWindow::~MainWindow()
