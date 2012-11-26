@@ -39,12 +39,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->BaudRateBox->addItem(QLatin1String("4800"), BAUD4800);
     ui->BaudRateBox->addItem(QLatin1String("9600"), BAUD9600);
     ui->BaudRateBox->addItem(QLatin1String("19200"), BAUD19200);
-    ui->BaudRateBox->setCurrentIndex(3);
+    ui->BaudRateBox->addItem(QLatin1String("38400"), BAUD38400);
+    ui->BaudRateBox->addItem(QLatin1String("57600"), BAUD57600);
+    ui->BaudRateBox->addItem(QLatin1String("115200"), BAUD115200);
+    ui->BaudRateBox->setCurrentIndex(5);
 
     ui->parityBox->addItem(QLatin1String("none"), PAR_NONE);
     ui->parityBox->addItem(QLatin1String("odd"), PAR_ODD);
     ui->parityBox->addItem(QLatin1String("even"), PAR_EVEN);
-    ui->parityBox->setCurrentIndex(1);
+    ui->parityBox->setCurrentIndex(0);
 
     ui->dataBitsBox->addItem(QLatin1String("5"), DATA_5);
     ui->dataBitsBox->addItem(QLatin1String("6"), DATA_6);
@@ -55,9 +58,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->stopBitsBox->addItem(QLatin1String("1"), STOP_1);
     ui->stopBitsBox->addItem(QLatin1String("2"), STOP_2);
 
-    ui->crcModeBox->addItem(QLatin1String("auto"));
-    ui->crcModeBox->addItem(QLatin1String("manual"));
-    ui->crcModeBox->setCurrentIndex(0);
 
     set_project_file();
     transfer_network_ = new TransferNetwork(project_file_info_.absoluteFilePath());
@@ -166,7 +166,6 @@ void MainWindow::disable_settings(){
     ui->parityBox->setDisabled(true);
     ui->stopBitsBox->setDisabled(true);
     ui->spinBox->setDisabled(true);
-    ui->crcModeBox->setDisabled(true);
 }
 
 void MainWindow::enable_settings(){
@@ -175,7 +174,6 @@ void MainWindow::enable_settings(){
     ui->parityBox->setDisabled(false);
     ui->stopBitsBox->setDisabled(false);
     ui->spinBox->setDisabled(false);
-    ui->crcModeBox->setDisabled(false);
 }
 
 void MainWindow::set_project_file(){
@@ -245,7 +243,7 @@ void MainWindow::set_project_file(){
     stream.writeEndElement();
 
     stream.writeStartElement("argument");
-    stream.writeAttribute("type", "int8");          //must be int8
+    stream.writeAttribute("type", "int8");
     stream.writeAttribute("ID", "8");
     stream.writeAttribute("name", "RSSI");
     stream.writeEndElement();

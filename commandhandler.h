@@ -23,9 +23,9 @@ public:
     char check_crc(QByteArray message);
     void insert_crc();
     void clear_transmit();
-    void do_nothing();
     void close_port();
     void update_timer();
+    void error_select_channel();
 signals:
     void log_message(QByteArray);
     void send_message(QByteArray);
@@ -38,8 +38,8 @@ public slots:
 private:
     QByteArray receive_message_, transmit_message_;
     QDataStream transmit_stream_;
-    QMap <int, void (CommandHandler::*)(void) > command_delegate_;
-    QMap <int, void (CommandHandler::*)(void) > ack_delegate_;
+    QMap <int, void (CommandHandler::*)(void) > command_delegate_, ack_delegate_, error_delegate_;
+//    QMap <int, void (CommandHandler::*)(void) > ack_delegate_;
     int channel_number_, last_sent_command_id_;
     QTimer* timer_;
     bool check_complete_;

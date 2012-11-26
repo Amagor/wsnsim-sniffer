@@ -17,12 +17,15 @@ CommandHandler::CommandHandler():transmit_stream_(&transmit_message_, QIODevice:
     ack_delegate_.insert(0x32, &CommandHandler::send_start_command);
     ack_delegate_.insert(0x33, &CommandHandler::update_timer);
     ack_delegate_.insert(0x34, &CommandHandler::close_port);
-    ack_delegate_.insert(0x36, &CommandHandler::update_timer);          //test
+    ack_delegate_.insert(0x36, &CommandHandler::update_timer);
+
+    error_delegate_.insert(0x37, &CommandHandler::error_select_channel);
 
     connect(timer_, SIGNAL(timeout()), this, SLOT(send_ack_request_packet()));
 }
 
 CommandHandler::~CommandHandler(){
+    delete timer_;
 }
 
 
@@ -78,8 +81,10 @@ void CommandHandler::on_ack_packet(){
     qDebug() << "ack packet received";
     //check result field
     //add some checks
-    receive_message_.clear();
-   (this->*ack_delegate_[last_sent_command_id_])();
+    if(!receive_message_.data()[4]){
+        receive_message_.clear();
+       (this->*ack_delegate_[last_sent_command_id_])();
+    }
 }
 
 void CommandHandler::send_start_command(){
@@ -145,9 +150,8 @@ void CommandHandler::clear_transmit(){
     transmit_stream_.device()->reset();
 }
 
-void CommandHandler::do_nothing(){}
-
 void CommandHandler::close_port(){
+    timer_->stop();
     qDebug() << "close port";
     emit close_current_port();
 }
@@ -170,4 +174,8 @@ void CommandHandler::send_ack_request_packet(){
 void CommandHandler::update_timer(){
     check_complete_ = true;
     timer_->start();
+}
+
+void CommandHandler::error_select_channel(){
+
 }

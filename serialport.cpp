@@ -5,7 +5,7 @@
 
 SerialPort::SerialPort()
 {
-    PortSettings settings = {BAUD9600, DATA_8, PAR_ODD, STOP_1, FLOW_OFF, 10};
+    PortSettings settings = {BAUD38400, DATA_8, PAR_NONE, STOP_1, FLOW_OFF, 10};
     current_port_ = new QextSerialPort(settings, QextSerialPort::EventDriven);
     connect(current_port_, SIGNAL(readyRead()), SLOT(on_ready_read()));
 }
