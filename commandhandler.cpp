@@ -129,7 +129,7 @@ void CommandHandler::on_data_packet_received(){
     receive_message_.prepend('\0');
     receive_message_.prepend(current_time_in_bytes, 8);
 
-    update_timer();             //test
+    update_timer();
 
     emit log_message(receive_message_);
     receive_message_.clear();
