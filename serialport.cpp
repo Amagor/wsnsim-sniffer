@@ -1,7 +1,6 @@
 #include "serialport.h"
 #include "qextserialenumerator.h"
 #include "mainwindow.h"
-#include <QDebug>               //убрать
 
 SerialPort::SerialPort()
 {
@@ -29,7 +28,6 @@ void SerialPort::open_port_session(QString port_name){
     if(!current_port_->isOpen()){
         current_port_->setPortName(port_name);
         current_port_->open(QIODevice::ReadWrite);
-        qDebug() << "port is open";
     }
 }
 

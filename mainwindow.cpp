@@ -6,7 +6,6 @@
 #include "transfernetwork.h"
 #include <QXmlStreamWriter>
 #include <QFile>
-#include <QDebug>
 
 
 MainWindow::MainWindow(QWidget *parent) :

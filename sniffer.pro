@@ -14,7 +14,11 @@ QT       += core gui \
 
 TARGET = sniffer
 TEMPLATE = app
-#CONFIG += no_icon
+
+CONFIG += qt release
+DEFINES += QT_NO_DEBUG_OUTPUT
+DEFINES += QT_NO_DEBUG
+
 
 include(../libs/qextserialport/src/qextserialport.pri)
 LIBS    += $$PWD/../libs/qextserialport/lib/libqextserialport-1.2.a

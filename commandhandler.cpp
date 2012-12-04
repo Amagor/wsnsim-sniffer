@@ -3,7 +3,6 @@
 #include "mainwindow.h"
 #include <QDateTime>
 #include <QMessageBox>
-#include <QDebug>               //убрать
 
 
 
@@ -57,7 +56,6 @@ void CommandHandler::set_channel_number(int channel){
 }
 
 void CommandHandler::send_query_request_packet(){
-    qDebug() << "send query request packet";
     clear_transmit();
     transmit_stream_ << quint8(0x00) << qint8(0x01) << qint8(0x03)
                      << qint8(0x37) << qint8(0xff) << qint8(0x04);
@@ -67,13 +65,11 @@ void CommandHandler::send_query_request_packet(){
 
 
 void CommandHandler::on_query_response_packet(){
-    qDebug() << "query response packet received";
     receive_message_.clear();
     send_channel_select_command();
 }
 
 void CommandHandler::send_channel_select_command(){
-    qDebug() << "send channel select command";
     clear_transmit();
     transmit_stream_ << quint8(0x00) << qint8(0x01) << qint8(0x04) << qint8(0x32)
                       << qint8(channel_number_) << qint8(0xff) << qint8(0x04);
@@ -83,7 +79,6 @@ void CommandHandler::send_channel_select_command(){
 }
 
 void CommandHandler::on_ack_packet(){
-    qDebug() << "ack packet received";
     if(!receive_message_.data()[4]){
        (this->*ack_delegate_[last_sent_command_id_])();
     }
@@ -95,7 +90,6 @@ void CommandHandler::on_ack_packet(){
 }
 
 void CommandHandler::send_start_command(){
-    qDebug() << "send start command";
     clear_transmit();
     transmit_stream_ << quint8(0x00) << qint8(0x01) << qint8(0x03) << qint8(0x33)
                      << qint8(0xff) << qint8(0x04);
@@ -105,7 +99,6 @@ void CommandHandler::send_start_command(){
 }
 
 void CommandHandler::send_stop_command(){
-    qDebug() << "send stop command";
     clear_transmit();
     transmit_stream_ << quint8(0x00) << qint8(0x01) << qint8(0x03) << qint8(0x34)
                      << qint8(0xff) << qint8(0x04);
@@ -116,8 +109,6 @@ void CommandHandler::send_stop_command(){
 
 
 void CommandHandler::on_data_packet_received(){
-    qDebug() << "data packet received";
-
     qint64 current_time = QDateTime::currentMSecsSinceEpoch();
     static char current_time_in_bytes[8];
     for(int i=0; i<8; i++)
@@ -159,13 +150,11 @@ void CommandHandler::clear_transmit(){
 
 void CommandHandler::close_port(){
     timer_->stop();
-    qDebug() << "close port";
     emit close_current_port();
 }
 
 void CommandHandler::send_ack_request_packet(){
     if(check_complete_){
-        qDebug() << "send ack request command";
         clear_transmit();
         transmit_stream_ << quint8(0x00) << qint8(0x01) << qint8(0x03) << qint8(0x36)
                          << qint8(0xff) << qint8(0x04);

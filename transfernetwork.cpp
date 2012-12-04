@@ -1,7 +1,5 @@
 #include "transfernetwork.h"
 #include "statictools.h"
-#include <QDebug>
-
 
 TransferNetwork::TransferNetwork(QString path):absolute_file_path_(path)
 {
@@ -17,6 +15,5 @@ TransferNetwork::~TransferNetwork(){
 }
 
 void TransferNetwork::send_message(QByteArray message){
-    qDebug() << "send message via udp";
     socket_.writeDatagram(message, *udp_ip_, udp_port_);
 }
