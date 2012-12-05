@@ -2,6 +2,7 @@
 #define STATICTOOLS_H
 
 #include "iclientrealtimesettings.h"
+#include "clientrealtimesettings.h"
 
 class StaticTools
 {
