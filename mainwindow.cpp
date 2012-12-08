@@ -6,6 +6,9 @@
 #include "transfernetwork.h"
 #include <QXmlStreamWriter>
 #include <QFile>
+#include <QAction>
+#include <QApplication>
+#include <QFileDialog>
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -15,8 +18,17 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
 
+    create_actions();
+    create_menus();
+
+    dialog_ = new QFileDialog(this);
+    dialog_->setFileMode(QFileDialog::DirectoryOnly);
+
+
     log_file_.setFileName("data.bin");
-    log_file_.open(QIODevice::WriteOnly);
+    project_file_.setFileName("project_sniffer.xml");
+    project_file_info_.setFile(project_file_);
+//    log_file_.open(QIODevice::WriteOnly);
 
     port_ = new SerialPort;
     command_handler_ = new CommandHandler;
@@ -57,8 +69,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->stopBitsBox->addItem(QLatin1String("2"), STOP_2);
 
 
-    set_project_file();
-    transfer_network_ = new TransferNetwork(project_file_info_.absoluteFilePath());
+//    set_project_file();
+//    transfer_network_ = new TransferNetwork(project_file_info_.absoluteFilePath());
 
     connect(ui->PortlistWidget, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(show_port_info(QListWidgetItem*)));
     connect(ui->BaudRateBox, SIGNAL(currentIndexChanged(int)), SLOT(baud_rate_changed(int)));
@@ -71,13 +83,15 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(stop_capture_command()), command_handler_, SLOT(send_stop_command()));
 
     connect(command_handler_, SIGNAL(log_message(QByteArray)), this, SLOT(write_to_log(QByteArray)));
-    connect(command_handler_, SIGNAL(log_message(QByteArray)), transfer_network_, SLOT(send_message(QByteArray)));
+//    connect(command_handler_, SIGNAL(log_message(QByteArray)), transfer_network_, SLOT(send_message(QByteArray)));
     connect(command_handler_, SIGNAL(send_message(QByteArray)), port_, SLOT(send_message(QByteArray)));
 
     connect(port_, SIGNAL(data_received(QByteArray&)), command_handler_, SLOT(get_message(QByteArray&)));
     connect(command_handler_, SIGNAL(close_current_port()), port_, SLOT(close_port_session()));
 
-
+    connect(actionLogFile_, SIGNAL(triggered()), this, SLOT(log_file_location_triggered()));
+    connect(actionQuit_, SIGNAL(triggered()), this, SLOT(close()));
+    connect(dialog_, SIGNAL(directoryEntered(QString)), this, SLOT(directory_changed(QString)));
 }
 
 MainWindow::~MainWindow()
@@ -85,6 +99,19 @@ MainWindow::~MainWindow()
     delete ui;
     delete port_;
     delete command_handler_;
+}
+
+
+void MainWindow::create_actions(){
+    actionLogFile_ = new QAction(tr("&Location..."), this);
+    actionQuit_ = new QAction(tr("&Quit"), this);
+    actionAboutQt_ = new QAction(tr("About &Qt"), this);
+}
+
+void MainWindow::create_menus(){
+    fileMenu_ = ui->menuBar->addMenu(tr("&File"));
+    fileMenu_->addAction(actionLogFile_);
+    fileMenu_->addAction(actionQuit_);
 }
 
 void MainWindow::scan_ports(){
@@ -121,6 +148,13 @@ void MainWindow::captureButton_clicked(bool check){
 
 void MainWindow::on_captureButton_pressed(){
     disable_settings();
+
+    set_project_file();
+    log_file_.open(QIODevice::WriteOnly);
+
+    transfer_network_ = new TransferNetwork(project_file_info_.absoluteFilePath());
+    connect(command_handler_, SIGNAL(log_message(QByteArray)), transfer_network_, SLOT(send_message(QByteArray)));
+
     ui->captureButton->setText("Stop capture");
     ui->PortlistWidget->setDisabled(true);
     ui->portInfoEdit->setDisabled(true);
@@ -130,6 +164,10 @@ void MainWindow::on_captureButton_pressed(){
 
 void MainWindow::on_captureButton_released(){
     enable_settings();
+
+    log_file_.close();
+    delete transfer_network_;
+
     ui->captureButton->setText("Start capture");
     ui->PortlistWidget->setDisabled(false);
     ui->portInfoEdit->setDisabled(false);
@@ -160,6 +198,19 @@ void MainWindow::stop_bits_changed(int idx)
     port_->set_stop_bits((StopBitsType)ui->stopBitsBox->itemData(idx).toInt());
 }
 
+void MainWindow::log_file_location_triggered(){
+    dialog_->exec();
+}
+
+void MainWindow::directory_changed(QString current_dir){
+    current_dir_ = current_dir;
+    QDir::setCurrent(current_dir_);
+    log_file_.setFileName("data.bin");
+    project_file_.setFileName("project_sniffer.xml");
+    project_file_info_.setFile(project_file_);
+}
+
+
 void MainWindow::disable_settings(){
     ui->BaudRateBox->setDisabled(true);
     ui->dataBitsBox->setDisabled(true);
@@ -177,10 +228,10 @@ void MainWindow::enable_settings(){
 }
 
 void MainWindow::set_project_file(){
-    QFile project_file("project_sniffer.xml");
-    project_file_info_.setFile(project_file);
-    project_file.open(QIODevice::WriteOnly);
-    QXmlStreamWriter stream(&project_file);
+//    QFile project_file("project_sniffer.xml");
+//    project_file_info_.setFile(project_file_);
+    project_file_.open(QIODevice::WriteOnly);
+    QXmlStreamWriter stream(&project_file_);
     stream.setAutoFormatting(true);
     stream.writeStartDocument();
     stream.writeStartElement("project");
@@ -283,4 +334,5 @@ void MainWindow::set_project_file(){
         stream.writeEndElement();
     stream.writeEndDocument();
 
+    project_file_.close();
 }
