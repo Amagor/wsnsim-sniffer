@@ -23,6 +23,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     dialog_ = new QFileDialog(this);
     dialog_->setFileMode(QFileDialog::AnyFile);
+//    dialog_->setConfirmOverwrite();
+    dialog_->setNameFilter(tr("Sniffer files (*.bin *.xml)"));
 
     log_file_.setFileName("data.bin");
     project_file_.setFileName("project_sniffer.xml");
