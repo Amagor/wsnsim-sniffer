@@ -47,6 +47,10 @@ void SerialPort::set_stop_bits(StopBitsType stop_bits){
     current_port_->setStopBits(stop_bits);
 }
 
+void SerialPort::set_flow_control(FlowType flow_type){
+    current_port_->setFlowControl(flow_type);
+}
+
 void SerialPort::close_port_session(){
     current_port_->close();
 }

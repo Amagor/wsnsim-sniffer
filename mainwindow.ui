@@ -92,6 +92,16 @@
           <widget class="QComboBox" name="stopBitsBox"/>
          </item>
          <item>
+          <widget class="QLabel" name="label_8">
+           <property name="text">
+            <string>Flow control</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="flowControlBox"/>
+         </item>
+         <item>
           <widget class="QLabel" name="label_7">
            <property name="text">
             <string>Channel</string>

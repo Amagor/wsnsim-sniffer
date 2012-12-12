@@ -16,6 +16,7 @@ public:
     void set_data_bits(DataBitsType);
     void set_parity(ParityType);
     void set_stop_bits(StopBitsType);
+    void set_flow_control(FlowType);
     void open_port_session(QString port_name);
 signals:
     void data_received(QByteArray&);

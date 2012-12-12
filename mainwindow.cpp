@@ -70,11 +70,16 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->stopBitsBox->addItem(QLatin1String("1"), STOP_1);
     ui->stopBitsBox->addItem(QLatin1String("2"), STOP_2);
 
+    ui->flowControlBox->addItem(QLatin1String("FLOW OFF"), FLOW_OFF);
+    ui->flowControlBox->addItem(QLatin1String("FLOW HARDWARE"), FLOW_HARDWARE);
+    ui->flowControlBox->addItem(QLatin1String("FLOW XONXOFF"), FLOW_XONXOFF);
+
     connect(ui->PortlistWidget, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(show_port_info(QListWidgetItem*)));
     connect(ui->BaudRateBox, SIGNAL(currentIndexChanged(int)), SLOT(baud_rate_changed(int)));
     connect(ui->parityBox, SIGNAL(currentIndexChanged(int)), SLOT(parity_changed(int)));
     connect(ui->dataBitsBox, SIGNAL(currentIndexChanged(int)), SLOT(data_bits_changed(int)));
     connect(ui->stopBitsBox, SIGNAL(currentIndexChanged(int)), SLOT(stop_bits_changed(int)));
+    connect(ui->flowControlBox, SIGNAL(currentIndexChanged(int)), SLOT(flow_control_changed(int)));
     connect(ui->captureButton, SIGNAL(clicked(bool)), SLOT(captureButton_clicked(bool)));
 
     connect(this, SIGNAL(channel_number_selected(int)), command_handler_, SLOT(set_channel_number(int)));
@@ -214,6 +219,10 @@ void MainWindow::stop_bits_changed(int idx)
     port_->set_stop_bits((StopBitsType)ui->stopBitsBox->itemData(idx).toInt());
 }
 
+void MainWindow::flow_control_changed(int idx){
+    port_->set_flow_control((FlowType)ui->flowControlBox->itemData(idx).toInt());
+}
+
 void MainWindow::log_file_location_triggered(){
     dialog_->exec();
 }
@@ -231,6 +240,7 @@ void MainWindow::disable_settings(){
     ui->parityBox->setDisabled(true);
     ui->stopBitsBox->setDisabled(true);
     ui->spinBox->setDisabled(true);
+    ui->flowControlBox->setDisabled(true);
 }
 
 void MainWindow::enable_settings(){
@@ -239,6 +249,7 @@ void MainWindow::enable_settings(){
     ui->parityBox->setDisabled(false);
     ui->stopBitsBox->setDisabled(false);
     ui->spinBox->setDisabled(false);
+    ui->flowControlBox->setDisabled(false);
 }
 
 void MainWindow::set_project_file(){

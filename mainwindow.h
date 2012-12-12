@@ -49,6 +49,7 @@ public slots:
     void parity_changed(int idx);
     void data_bits_changed(int idx);
     void stop_bits_changed(int idx);
+    void flow_control_changed(int idx);
 
     void write_to_log(QByteArray);
     void log_file_location_triggered();

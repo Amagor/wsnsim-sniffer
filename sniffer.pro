@@ -41,3 +41,5 @@ HEADERS  += mainwindow.h \
     commandhandler.h
 
 FORMS    += mainwindow.ui
+
+RESOURCES +=
