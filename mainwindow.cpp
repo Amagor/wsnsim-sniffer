@@ -21,9 +21,10 @@ MainWindow::MainWindow(QWidget *parent) :
     create_actions();
     create_menus();
 
-    dialog_ = new QFileDialog(this);
+    dialog_ = new QFileDialog(this, tr("Save files"));
     dialog_->setFileMode(QFileDialog::AnyFile);
     dialog_->setNameFilter(tr("Sniffer files (*.bin *.xml)"));
+
 
     log_file_.setFileName("data.bin");
     project_file_.setFileName("project_sniffer.xml");
