@@ -29,7 +29,6 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    void scan_ports();
     void disable_settings();
     void enable_settings();
     void on_captureButton_pressed();
@@ -43,6 +42,7 @@ signals:
     void stop_capture_command();
 
 public slots:
+    void scan_ports();
     void show_port_info(QListWidgetItem* item);
     void captureButton_clicked(bool);
     void baud_rate_changed(int idx);
@@ -67,7 +67,8 @@ private:
     QAction* actionLogFile_;
     QAction* actionQuit_;
     QAction* actionAboutQt_;
-    QMenu* fileMenu_;
+    QAction* actionRescanPorts_;
+    QMenu *fileMenu_, *toolsMenu_, *aboutMenu_;
     QFileDialog* dialog_;
     QString current_dir_;
 };

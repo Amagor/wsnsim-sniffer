@@ -18,6 +18,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
 
+    this->setWindowTitle(tr("Sniffer"));
+
     create_actions();
     create_menus();
 
@@ -87,6 +89,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(actionLogFile_, SIGNAL(triggered()), this, SLOT(log_file_location_triggered()));
     connect(actionQuit_, SIGNAL(triggered()), this, SLOT(close()));
     connect(dialog_, SIGNAL(fileSelected(QString)), this, SLOT(directory_changed(QString)));
+
+    connect(actionRescanPorts_, SIGNAL(triggered()), this, SLOT(scan_ports()));
+    connect(actionAboutQt_, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 }
 
 MainWindow::~MainWindow()
@@ -98,15 +103,25 @@ MainWindow::~MainWindow()
 
 
 void MainWindow::create_actions(){
-    actionLogFile_ = new QAction(tr("&Location..."), this);
+    actionLogFile_ = new QAction(tr("&Location"), this);
     actionQuit_ = new QAction(tr("&Quit"), this);
+    actionRescanPorts_ = new QAction(tr("&Rescan ports"), this);
+
     actionAboutQt_ = new QAction(tr("About &Qt"), this);
+    actionAboutQt_->setStatusTip(tr("Show the Qt library's About box"));
 }
 
 void MainWindow::create_menus(){
     fileMenu_ = ui->menuBar->addMenu(tr("&File"));
     fileMenu_->addAction(actionLogFile_);
     fileMenu_->addAction(actionQuit_);
+
+    toolsMenu_ = ui->menuBar->addMenu(tr("&Tools"));
+    toolsMenu_->addAction(actionRescanPorts_);
+
+    aboutMenu_ = ui->menuBar->addMenu(tr("&About"));
+    aboutMenu_->addAction(actionAboutQt_);
+
 }
 
 void MainWindow::scan_ports(){
@@ -150,6 +165,8 @@ void MainWindow::on_captureButton_pressed(){
     transfer_network_ = new TransferNetwork(project_file_info_.absoluteFilePath());
     connect(command_handler_, SIGNAL(log_message(QByteArray)), transfer_network_, SLOT(send_message(QByteArray)));
 
+    actionLogFile_->setEnabled(false);
+
     ui->captureButton->setText("Stop capture");
     ui->PortlistWidget->setDisabled(true);
     ui->portInfoEdit->setDisabled(true);
@@ -165,7 +182,9 @@ void MainWindow::on_captureButton_released(){
     disconnect(command_handler_, SIGNAL(log_message(QByteArray)), transfer_network_, SLOT(send_message(QByteArray)));
     delete transfer_network_;
 
-    ui->captureButton->setText("Start capture");
+    actionLogFile_->setEnabled(true);
+
+    ui->captureButton->setText(tr("&Start capture"));
     ui->PortlistWidget->setDisabled(false);
     ui->portInfoEdit->setDisabled(false);
     emit stop_capture_command();
@@ -223,8 +242,6 @@ void MainWindow::enable_settings(){
 }
 
 void MainWindow::set_project_file(){
-//    QFile project_file("project_sniffer.xml");
-//    project_file_info_.setFile(project_file_);
     project_file_.open(QIODevice::WriteOnly);
     QXmlStreamWriter stream(&project_file_);
     stream.setAutoFormatting(true);
