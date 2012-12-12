@@ -23,13 +23,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     dialog_ = new QFileDialog(this);
     dialog_->setFileMode(QFileDialog::AnyFile);
-//    dialog_->setConfirmOverwrite();
     dialog_->setNameFilter(tr("Sniffer files (*.bin *.xml)"));
 
     log_file_.setFileName("data.bin");
     project_file_.setFileName("project_sniffer.xml");
     project_file_info_.setFile(project_file_);
-//    log_file_.open(QIODevice::WriteOnly);
 
     port_ = new SerialPort;
     command_handler_ = new CommandHandler;
