@@ -228,9 +228,11 @@ void MainWindow::log_file_location_triggered(){
 }
 
 void MainWindow::directory_changed(QString current_file){
-    log_file_.setFileName(current_file + ".bin");
-    project_file_.setFileName(current_file + ".xml");
-    project_file_info_.setFile(project_file_);
+    if(!current_file.isEmpty()){
+        log_file_.setFileName(current_file + ".bin");
+        project_file_.setFileName(current_file + ".xml");
+        project_file_info_.setFile(project_file_);
+    }
 }
 
 
