@@ -22,8 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
     create_menus();
 
     dialog_ = new QFileDialog(this);
-    dialog_->setFileMode(QFileDialog::DirectoryOnly);
-
+    dialog_->setFileMode(QFileDialog::AnyFile);
 
     log_file_.setFileName("data.bin");
     project_file_.setFileName("project_sniffer.xml");
@@ -68,10 +67,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->stopBitsBox->addItem(QLatin1String("1"), STOP_1);
     ui->stopBitsBox->addItem(QLatin1String("2"), STOP_2);
 
-
-//    set_project_file();
-//    transfer_network_ = new TransferNetwork(project_file_info_.absoluteFilePath());
-
     connect(ui->PortlistWidget, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(show_port_info(QListWidgetItem*)));
     connect(ui->BaudRateBox, SIGNAL(currentIndexChanged(int)), SLOT(baud_rate_changed(int)));
     connect(ui->parityBox, SIGNAL(currentIndexChanged(int)), SLOT(parity_changed(int)));
@@ -83,7 +78,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(stop_capture_command()), command_handler_, SLOT(send_stop_command()));
 
     connect(command_handler_, SIGNAL(log_message(QByteArray)), this, SLOT(write_to_log(QByteArray)));
-//    connect(command_handler_, SIGNAL(log_message(QByteArray)), transfer_network_, SLOT(send_message(QByteArray)));
     connect(command_handler_, SIGNAL(send_message(QByteArray)), port_, SLOT(send_message(QByteArray)));
 
     connect(port_, SIGNAL(data_received(QByteArray&)), command_handler_, SLOT(get_message(QByteArray&)));
@@ -91,7 +85,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(actionLogFile_, SIGNAL(triggered()), this, SLOT(log_file_location_triggered()));
     connect(actionQuit_, SIGNAL(triggered()), this, SLOT(close()));
-    connect(dialog_, SIGNAL(directoryEntered(QString)), this, SLOT(directory_changed(QString)));
+    connect(dialog_, SIGNAL(fileSelected(QString)), this, SLOT(directory_changed(QString)));
 }
 
 MainWindow::~MainWindow()
@@ -166,6 +160,8 @@ void MainWindow::on_captureButton_released(){
     enable_settings();
 
     log_file_.close();
+
+    disconnect(command_handler_, SIGNAL(log_message(QByteArray)), transfer_network_, SLOT(send_message(QByteArray)));
     delete transfer_network_;
 
     ui->captureButton->setText("Start capture");
@@ -202,11 +198,9 @@ void MainWindow::log_file_location_triggered(){
     dialog_->exec();
 }
 
-void MainWindow::directory_changed(QString current_dir){
-    current_dir_ = current_dir;
-    QDir::setCurrent(current_dir_);
-    log_file_.setFileName("data.bin");
-    project_file_.setFileName("project_sniffer.xml");
+void MainWindow::directory_changed(QString current_file){
+    log_file_.setFileName(current_file + ".bin");
+    project_file_.setFileName(current_file + ".xml");
     project_file_info_.setFile(project_file_);
 }
 
