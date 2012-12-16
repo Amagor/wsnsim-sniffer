@@ -11,6 +11,7 @@
 #include <QFileDialog>
 
 
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -26,6 +27,10 @@ MainWindow::MainWindow(QWidget *parent) :
     dialog_ = new QFileDialog(this, tr("Save files"));
     dialog_->setFileMode(QFileDialog::AnyFile);
     dialog_->setNameFilter(tr("Sniffer files (*.bin *.xml)"));
+
+    ui->labelCurrentDir->setText(tr("Current directory: "));
+    ui->lineCurrentDir->setReadOnly(true);
+    ui->lineCurrentDir->setText(QDir::currentPath());
 
 
     log_file_.setFileName("data.bin");
@@ -229,6 +234,8 @@ void MainWindow::log_file_location_triggered(){
 
 void MainWindow::directory_changed(QString current_file){
     if(!current_file.isEmpty()){
+        QFileInfo test(current_file);
+        ui->lineCurrentDir->setText(test.path());
         log_file_.setFileName(current_file + ".bin");
         project_file_.setFileName(current_file + ".xml");
         project_file_info_.setFile(project_file_);
