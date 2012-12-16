@@ -32,6 +32,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lineCurrentDir->setReadOnly(true);
     ui->lineCurrentDir->setText(QDir::currentPath());
 
+    ui->mainToolBar->close();
+
 
     log_file_.setFileName("data.bin");
     project_file_.setFileName("project_sniffer.xml");
