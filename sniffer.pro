@@ -8,24 +8,26 @@ QT       += core gui \
             network \
             xml
 
-
-
 #CONFIG += console
 
 TARGET = sniffer
 TEMPLATE = app
 
-CONFIG += qt release
-DEFINES += QT_NO_DEBUG_OUTPUT
-DEFINES += QT_NO_DEBUG
+INCLUDEPATH += ../libs/qextserialport/src/
+INCLUDEPATH += ../libs/globalSettings/realtime/interfaces
+INCLUDEPATH += ../libs/globalSettings/realtime/include
+INCLUDEPATH += ../libs/globalSettings/realtime/tools/include
 
+win32 {
+    LIBS += ../../bin/libglobalSettings.a
+    LIBS += ../../bin/libqextserialport-1.2.a
+    LIBS += -lsetupapi
+}
 
-include(../libs/qextserialport/src/qextserialport.pri)
-LIBS    += $$PWD/../libs/qextserialport/lib/libqextserialport-1.2.a
-LIBS    += $$PWD/../libs/qextserialport/lib/libqextserialport-1.2d.a
-
-INCLUDEPATH += ../libs/qextserialport/src/ \
-    ../libs/globalSettings/realtime/interfaces/
+unix {
+    LIBS += -L../../bin -lglobalSettings
+    LIBS += -L../../bin -lqextserialport-1.2
+}
 
 SOURCES += main.cpp\
         mainwindow.cpp \
